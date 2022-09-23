@@ -13,39 +13,33 @@ namespace BestBuyBestPractices
 {
     public class Program
     {
+        static IConfiguration config = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json")
+        .Build();
+
+        static string connString = config.GetConnectionString("DefaultConnection");
+
+        static IDbConnection conn = new MySqlConnection(connString);
         static void Main(string[] args)
         {
-            #region Configuration
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .Build();
+            //InsertDepartment();
 
-            string connString = config.GetConnectionString("DefaultConnection");
-            #endregion
+            InsertProducts();
+            
+            UpdateProductName();
 
-            IDbConnection conn = new MySqlConnection(connString);
+            DeleteProducts();
 
-            //var repo = new DapperDepartmentRepository(conn);
-            //var departments = repo.GetAllDepartments();
-
-            //Print(departments);
+        }
 
 
-            //Console.WriteLine("Do you want to add a department? Yes or No");
-            //string userResponse = Console.ReadLine();
-
-            //if (userResponse.ToLower() == "yes")
-            //{
-            //    Console.WriteLine("What is the name of the new Department?");
-            //    userResponse = Console.ReadLine();
-
-            //    repo.InsertDepartment(userResponse);
-            //    Print(repo.GetAllDepartments());
-            //}
-
+        public static void InsertProducts()
+        {
             var repo = new DapperProductRepository(conn);
             var products = repo.GetAllProducts();
+            PrintProd(products);
+            Console.WriteLine("                  ");
 
             Console.WriteLine("Do you want to add a product? Yes or No");
             string userResponse = Console.ReadLine();
@@ -60,12 +54,88 @@ namespace BestBuyBestPractices
                 int prodCategoryID = int.Parse(Console.ReadLine());
 
                 repo.InsertProducts(prodName, prodPrice, prodCategoryID);
-                Print(repo.GetAllProducts());
+                PrintProd(repo.GetAllProducts());
+                Console.WriteLine("\n");
+
             }
 
+        }
+
+        public static void UpdateProductName()
+        {
+            var repo = new DapperProductRepository(conn);
+            Console.WriteLine("Do you want to update a product name? Yes or No");
+            string userResponse = Console.ReadLine();
+
+            if (userResponse.ToLower() == "yes")
+            {
+
+                Console.WriteLine($"What is the productID of the product you would like to update?");
+                var productID = int.Parse(Console.ReadLine());
+
+                Console.WriteLine($"What is the new name you would like for the product with an id of {productID}?");
+                var updatedName = Console.ReadLine();
+
+                repo.UpdateProductName(productID, updatedName);
+                PrintProd(repo.GetAllProducts());
+                Console.WriteLine("\n");
+
+            }
 
         }
-        private static void Print(IEnumerable<Product> products)
+
+        public static void DeleteProducts()
+        {
+            var repo = new DapperProductRepository(conn);
+            Console.WriteLine("Do you want to delete a product? Yes or No");
+            string userResponse = Console.ReadLine();
+
+            if (userResponse.ToLower() == "yes")
+            {
+
+                Console.WriteLine($"What is the productID of the product you would like to delete?");
+                var productID = int.Parse(Console.ReadLine());
+
+                repo.DeleteProducts(productID);
+                PrintProd(repo.GetAllProducts());
+                Console.WriteLine("\n");
+
+            }
+
+        }
+        public static void InsertDepartment()
+        {
+            var repo = new DapperDepartmentRepository(conn);
+            var departments = repo.GetAllDepartments();
+            PrintDept(departments);
+            Console.WriteLine("              ");
+
+            Console.WriteLine("Do you want to add a department? Yes or No");
+            string userResponse = Console.ReadLine();
+
+            if (userResponse.ToLower() == "yes")
+            {
+                Console.WriteLine("What is the name of the new Department?");
+                userResponse = Console.ReadLine();
+
+                repo.InsertDepartment(userResponse);
+                PrintDept(repo.GetAllDepartments());
+                Console.WriteLine("\n");
+            }
+        }
+
+
+
+        private static void PrintDept(IEnumerable<Department> departments)
+        {
+            foreach (var item in departments)
+            {
+                Console.WriteLine($"{item.DepartmentID} {item.Name}");
+            }
+        }
+
+
+        private static void PrintProd(IEnumerable<Product> products)
         {
             foreach (var prod in products)
             {
